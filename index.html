@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>دوزان — عيّار الربع تون</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#120E17;
+  --surface:#1C1626;
+  --surface2:#241C31;
+  --line:#332843;
+  --brass:#C99B4F;
+  --brass-soft:#8A6B3A;
+  --ivory:#F0E8D8;
+  --muted:#8E8399;
+  --good:#63C68C;
+  --bad:#C25B5B;
+  --radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ivory);
+  font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;
+  background-image:radial-gradient(ellipse 90% 50% at 50% -10%, #241C31 0%, transparent 60%);
+}
+.app{width:100%;max-width:430px;padding:20px 18px 32px;display:flex;flex-direction:column;gap:18px}
+
+/* ---------- Header ---------- */
+header{text-align:center;padding-top:6px}
+h1{
+  font-family:"Aref Ruqaa",serif;
+  font-size:44px;font-weight:700;line-height:1.15;
+  color:var(--brass);
+  letter-spacing:.5px;
+}
+.tagline{font-size:13px;color:var(--muted);font-weight:300;margin-top:2px}
+
+/* ---------- Gauge ---------- */
+.gauge-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px 14px 10px;
+  position:relative;
+  overflow:hidden;
+}
+.gauge-card::before{ /* rosette hint */
+  content:"";position:absolute;inset:-40% -20% auto -20%;height:200px;
+  background:radial-gradient(circle at 50% 0%, rgba(201,155,79,.10), transparent 70%);
+  pointer-events:none;
+}
+svg{display:block;width:100%;height:auto}
+.tick{stroke:var(--line);stroke-width:2}
+.tick.major{stroke:var(--brass-soft);stroke-width:2.5}
+.tick.center{stroke:var(--good);stroke-width:3}
+.needle{stroke:var(--brass);stroke-width:3.5;stroke-linecap:round;
+  transition:transform .12s ease-out;transform-origin:150px 150px}
+@media (prefers-reduced-motion:reduce){.needle{transition:none}}
+.needle-hub{fill:var(--brass)}
+.arc-path{fill:none;stroke:var(--line);stroke-width:1.5}
+.gauge-labels{display:flex;justify-content:space-between;padding:0 12px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-top:-6px}
+
+.note-display{text-align:center;margin-top:-118px;position:relative;pointer-events:none}
+.note-ar{
+  font-family:"Aref Ruqaa",serif;
+  font-size:52px;font-weight:700;line-height:1;
+  transition:color .2s;
+}
+.note-ar.in-tune{color:var(--good);text-shadow:0 0 24px rgba(99,198,140,.35)}
+.note-west{font-family:"IBM Plex Mono",monospace;font-size:15px;color:var(--muted);margin-top:4px}
+.qt-badge{
+  display:inline-block;margin-top:8px;padding:3px 12px;border-radius:99px;
+  border:1px solid var(--brass-soft);color:var(--brass);
+  font-size:12px;font-weight:500;visibility:hidden;
+}
+.qt-badge.show{visibility:visible}
+.spacer-after-note{height:56px}
+
+.readouts{display:flex;justify-content:center;gap:26px;padding:12px 0 4px;border-top:1px solid var(--line);margin-top:10px}
+.readout{text-align:center}
+.readout .val{font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:500}
+.readout .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.cents-val.good{color:var(--good)}
+.cents-val.off{color:var(--bad)}
+
+/* ---------- Mic button ---------- */
+.mic-btn{
+  width:100%;padding:15px;border:none;border-radius:14px;
+  background:var(--brass);color:#1A1410;
+  font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;
+  transition:filter .15s;
+}
+.mic-btn:hover{filter:brightness(1.08)}
+.mic-btn:focus-visible{outline:3px solid var(--ivory);outline-offset:2px}
+.mic-btn.listening{background:var(--surface2);color:var(--brass);border:1px solid var(--brass-soft)}
+.mic-hint{text-align:center;font-size:12px;color:var(--muted);margin-top:-8px}
+
+/* ---------- Instruments ---------- */
+.section-title{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:8px 16px;border-radius:99px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);
+  color:var(--ivory);font-family:inherit;font-size:14px;
+  transition:all .15s;
+}
+.chip:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.chip.active{background:var(--brass);color:#1A1410;border-color:var(--brass);font-weight:600}
+
+.strings{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.string-chip{
+  flex:1;min-width:52px;padding:10px 4px;border-radius:12px;cursor:pointer;
+  background:var(--surface2);border:1px solid var(--line);
+  color:var(--ivory);font-family:inherit;text-align:center;
+  transition:all .15s;
+}
+.string-chip:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.string-chip .n{font-family:"Aref Ruqaa",serif;font-size:19px;line-height:1.1}
+.string-chip .f{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);margin-top:3px}
+.string-chip.target{border-color:var(--brass);background:rgba(201,155,79,.12)}
+.string-chip.hit{border-color:var(--good);background:rgba(99,198,140,.12)}
+.strings-hint{font-size:11px;color:var(--muted);margin-top:8px}
+.dz-select{
+  width:100%;padding:11px 12px;border-radius:12px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);color:var(--ivory);
+  font-family:inherit;font-size:14px;appearance:none;
+}
+.dz-select:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+/* ---------- Reference ---------- */
+.ref-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.ref-card .lbl{font-size:14px}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface2);color:var(--ivory);font-size:18px;cursor:pointer;font-family:inherit;
+}
+.stepper button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.stepper .a4{font-family:"IBM Plex Mono",monospace;font-size:16px;min-width:74px;text-align:center}
+/* ---------- تحليل المقطوعة ---------- */
+.analysis-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.analysis-title{font-family:"Aref Ruqaa",serif;font-size:22px;color:var(--brass);margin-bottom:2px}
+.analysis-sub{font-size:12px;color:var(--muted);line-height:1.6}
+.analysis-actions{display:flex;gap:8px;margin-top:12px}
+.action-btn{
+  flex:1;padding:12px 8px;border-radius:12px;cursor:pointer;
+  background:var(--surface2);border:1px solid var(--line);color:var(--ivory);
+  font-family:inherit;font-size:14px;font-weight:500;transition:all .15s;
+}
+.action-btn:hover{border-color:var(--brass-soft)}
+.action-btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.action-btn.rec{background:rgba(194,91,91,.15);border-color:var(--bad);color:#E8A79B}
+.progress-wrap{height:6px;background:var(--surface2);border-radius:99px;margin-top:12px;overflow:hidden;display:none}
+.progress-bar{height:100%;width:0%;background:var(--brass);border-radius:99px;transition:width .2s}
+.analysis-status{font-size:12px;color:var(--muted);margin-top:8px;min-height:16px}
+.result-block{margin-top:14px;display:none}
+.maqam-result{
+  border:1px solid var(--brass-soft);border-radius:12px;padding:12px 14px;
+  background:rgba(201,155,79,.07);
+}
+.maqam-name{font-family:"Aref Ruqaa",serif;font-size:26px;color:var(--brass);line-height:1.3}
+.maqam-scale{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.scale-note{padding:4px 10px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);font-size:12px}
+.scale-note.tonic{border-color:var(--brass);color:var(--brass);font-weight:600}
+.playback-row{display:flex;gap:8px;margin-top:12px;align-items:stretch}
+.playback-row select{
+  flex:1;padding:10px 12px;border-radius:12px;cursor:pointer;
+  background:var(--surface2);border:1px solid var(--line);color:var(--ivory);
+  font-family:inherit;font-size:14px;appearance:none;
+}
+.playback-row select:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.playback-row .action-btn{flex:1.4}
+.notation-wrap{margin-top:14px;background:#FBF6EC;border-radius:12px;padding:10px 6px;overflow-x:auto;direction:ltr}
+.notation-wrap svg{min-width:640px}
+.measures-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.measure-row{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;line-height:1.8}
+.measure-row b{color:var(--brass);font-weight:600}
+footer{text-align:center;font-size:11px;color:var(--muted);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>دوزان</h1>
+    <div class="tagline">عيّار كروماتي بنظام الربع تون — ٢٤ نغمة في الديوان</div>
+  </header>
+
+  <div class="gauge-card">
+    <svg viewBox="0 0 300 165" aria-hidden="true">
+      <path class="arc-path" d="M 30 150 A 120 120 0 0 1 270 150"/>
+      <g id="ticks"></g>
+      <line id="needle" class="needle" x1="150" y1="150" x2="150" y2="48"/>
+      <circle class="needle-hub" cx="150" cy="150" r="6"/>
+    </svg>
+    <div class="gauge-labels"><span>+50</span><span>سنت</span><span>−50</span></div>
+
+    <div class="note-display">
+      <div class="note-ar" id="noteAr">—</div>
+      <div class="note-west" id="noteWest">استمع…</div>
+      <div class="qt-badge" id="qtBadge">ربع تون</div>
+    </div>
+    <div class="spacer-after-note"></div>
+
+    <div class="readouts">
+      <div class="readout"><div class="val" id="freqVal">0.0</div><div class="lbl">هرتز</div></div>
+      <div class="readout"><div class="val cents-val" id="centsVal">—</div><div class="lbl">الانحراف (سنت)</div></div>
+    </div>
+  </div>
+
+  <button class="mic-btn" id="micBtn">▶︎ ابدأ الاستماع</button>
+  <div class="mic-hint" id="micHint">يحتاج التطبيق إذن الوصول إلى الميكروفون</div>
+
+  <div>
+    <div class="section-title">الآلة</div>
+    <div class="chips" id="instrumentChips" role="tablist"></div>
+    <div class="strings" id="stringsRow"></div>
+    <div class="strings-hint" id="stringsHint"></div>
+    <div id="transposeRow" style="display:none;margin-top:12px">
+      <div class="section-title">رفع / خفض الدوزان</div>
+      <select id="transposeSelect" class="dz-select">
+        <option value="-4">خفض نغمة كاملة (n = −4)</option>
+        <option value="-3">خفض نغمة إلا ربع (n = −3)</option>
+        <option value="-2">خفض نصف نغمة (n = −2)</option>
+        <option value="-1">خفض ربع نغمة (n = −1)</option>
+        <option value="0" selected>الدوزان الأصلي (n = 0)</option>
+        <option value="1">رفع ربع نغمة (n = +1)</option>
+        <option value="2">رفع نصف نغمة (n = +2)</option>
+        <option value="3">رفع نغمة إلا ربع (n = +3)</option>
+        <option value="4">رفع نغمة كاملة (n = +4)</option>
+      </select>
+      <div class="strings-hint">f = f₀ × 2<sup>n/24</sup> — تُحدَّث الترددات المعروضة والنغمات المسموعة تلقائيًا</div>
+    </div>
+  </div>
+
+  <div class="analysis-card">
+    <div class="analysis-title">تحليل المقطوعة</div>
+    <div class="analysis-sub">ارفع تسجيلًا صوتيًا من جهازك أو سجّل مباشرة، وسيحدّد التطبيق مقام المقطوعة ويدوّن أول ثماني موازير بنغماتها، مع إمكانية الاستماع إليها بصوت البيانو.</div>
+    <div class="analysis-actions">
+      <button class="action-btn" id="uploadBtn">📁 رفع تسجيل</button>
+      <button class="action-btn" id="recordBtn">🎙 تسجيل مباشر</button>
+    </div>
+    <input type="file" id="fileInput" accept="audio/*" style="display:none">
+    <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="analysis-status" id="analysisStatus"></div>
+
+    <div class="result-block" id="resultBlock">
+      <div class="maqam-result">
+        <div style="font-size:12px;color:var(--muted)">المقام المُرجّح</div>
+        <div class="maqam-name" id="maqamName">—</div>
+        <div class="maqam-scale" id="maqamScale"></div>
+      </div>
+      <div class="playback-row">
+        <button class="action-btn" id="playMeasuresBtn">🎹 ▶︎ تشغيل الموازير</button>
+      </div>
+      <div class="notation-wrap" id="notationWrap"></div>
+      <div class="measures-list" id="measuresList"></div>
+    </div>
+  </div>
+
+  <div class="ref-card">
+    <div class="lbl">مرجع الدرجة <span style="font-family:'IBM Plex Mono',monospace">A4</span></div>
+    <div class="stepper">
+      <button id="refDown" aria-label="خفض المرجع">−</button>
+      <div class="a4"><span id="refVal">440</span> هرتز</div>
+      <button id="refUp" aria-label="رفع المرجع">+</button>
+    </div>
+  </div>
+
+  <footer>القيم بين النغمات الكاملة تُقرأ كنصف بيمول أو نصف دييز (خطوة ٥٠ سنت).<br>اضغط على أي وتر لسماع نغمته المرجعية.</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------------- نظام الـ 24 نغمة ---------------- */
+const AR_NAMES = ["دو","دو نص دييز","دو دييز","ري نص بيمول","ري","ري نص دييز","مي بيمول","مي نص بيمول","مي","فا نص بيمول","فا","فا نص دييز","فا دييز","صول نص بيمول","صول","صول نص دييز","لا بيمول","لا نص بيمول","لا","لا نص دييز","سي بيمول","سي نص بيمول","سي","دو نص بيمول"];
+const W_NAMES  = ["C","C½♯","C♯","D½♭","D","D½♯","E♭","E½♭","E","F½♭","F","F½♯","F♯","G½♭","G","G½♯","A♭","A½♭","A","A½♯","B♭","B½♭","B","C½♭"];
+const MAQAM_HINT = {7:"سيكاه", 21:"نغمة الراست/البياتي"};
+
+let A4 = 440;
+const C0 = () => A4 * Math.pow(2, -4.75); // C0 بالنسبة للمرجع
+
+function freqToQuarter(f){ return 24 * Math.log2(f / C0()); }        // ربع تون متصل
+function quarterToFreq(q){ return C0() * Math.pow(2, q / 24); }
+function idxInfo(idx){
+  const oct = Math.floor(idx / 24);
+  const step = ((idx % 24) + 24) % 24;
+  return { oct, step, ar: AR_NAMES[step], west: W_NAMES[step] + oct, isQT: step % 2 === 1 };
+}
+
+/* ---------------- الآلات ---------------- */
+/* كل وتر: [الاسم العربي، رقم الربع تون فوق C0] — النغمة = خطوة*? نحسب: idx = oct*24 + step */
+const q = (step, oct) => oct * 24 + step;
+const INSTRUMENTS = [
+  { id:"free", name:"وضع حر",
+    strings: [], hint:"يلتقط أقرب نغمة من سلم الـ٢٤ تلقائيًا — مناسب للقانون والناي وأي آلة." },
+  { id:"oud", name:"عود عربي",
+    strings: [ [q(0,2),"دو"], [q(10,2),"فا"], [q(18,2),"لا"], [q(4,3),"ري"], [q(14,3),"صول"], [q(0,4),"دو"] ],
+    hint:"الدوزان العربي الشائع من الغليظ إلى الحاد: دو – فا – لا – ري – صول – دو." },
+  { id:"violin", name:"كمان شرقي",
+    strings: [ [q(14,3),"صول"], [q(4,4),"ري"], [q(14,4),"صول"], [q(4,5),"ري"] ],
+    hint:"الدوزان الشرقي للكمان: صول – ري – صول – ري." },
+  { id:"violinW", name:"كمان غربي",
+    strings: [ [q(14,3),"صول"], [q(4,4),"ري"], [q(18,4),"لا"], [q(8,5),"مي"] ],
+    hint:"الدوزان القياسي: صول – ري – لا – مي." },
+  { id:"buzuq", name:"بزق",
+    strings: [ [q(0,3),"دو"], [q(14,3),"صول"], [q(0,4),"دو"] ],
+    hint:"دوزان شائع للبزق: دو – صول – دو." },
+];
+let currentInstrument = INSTRUMENTS[0];
+
+/* ---------------- عناصر الواجهة ---------------- */
+const $ = id => document.getElementById(id);
+const needle = $("needle"), noteAr = $("noteAr"), noteWest = $("noteWest"),
+      qtBadge = $("qtBadge"), freqVal = $("freqVal"), centsVal = $("centsVal"),
+      micBtn = $("micBtn"), micHint = $("micHint"),
+      chipsBox = $("instrumentChips"), stringsRow = $("stringsRow"), stringsHint = $("stringsHint");
+
+/* علامات القوس: كل 5 سنت، رئيسية كل 25 */
+(function drawTicks(){
+  const g = $("ticks");
+  for (let c = -50; c <= 50; c += 5){
+    const a = (c / 50) * (Math.PI / 4) * 1.8;              // ±81 درجة تقريبًا -> نستخدم ±72
+    const ang = (-c / 50) * (72 * Math.PI / 180);          // موجب يمينًا (RTL: +50 يسار المحور المرسوم معكوس بالتسميات)
+    const r1 = 120, r2 = c === 0 ? 104 : (c % 25 === 0 ? 108 : 113);
+    const x1 = 150 + r1 * Math.sin(ang), y1 = 150 - r1 * Math.cos(ang);
+    const x2 = 150 + r2 * Math.sin(ang), y2 = 150 - r2 * Math.cos(ang);
+    const t = document.createElementNS("http://www.w3.org/2000/svg","line");
+    t.setAttribute("x1",x1); t.setAttribute("y1",y1);
+    t.setAttribute("x2",x2); t.setAttribute("y2",y2);
+    t.setAttribute("class","tick" + (c===0?" center":(c%25===0?" major":"")));
+    g.appendChild(t);
+  }
+})();
+
+function setNeedle(cents){
+  const c = Math.max(-50, Math.min(50, cents));
+  needle.style.transform = `rotate(${(-c/50)*72}deg)`;
+}
+
+/* ---------------- شرائح الآلات والأوتار ---------------- */
+function renderInstruments(){
+  chipsBox.innerHTML = "";
+  INSTRUMENTS.forEach(ins => {
+    const b = document.createElement("button");
+    b.className = "chip" + (ins === currentInstrument ? " active" : "");
+    b.textContent = ins.name;
+    b.onclick = () => { currentInstrument = ins; renderInstruments(); renderStrings(); };
+    chipsBox.appendChild(b);
+  });
+}
+let transpose = 0;   /* عدد الأرباع n في المعادلة f = f₀ × 2^(n/24) */
+function renderStrings(){
+  stringsRow.innerHTML = "";
+  stringsHint.textContent = currentInstrument.hint;
+  document.getElementById("transposeRow").style.display = currentInstrument.strings.length ? "block" : "none";
+  currentInstrument.strings.forEach(([idx, label]) => {
+    const f = quarterToFreq(idx + transpose);
+    const b = document.createElement("button");
+    b.className = "string-chip"; b.dataset.idx = idx;
+    b.innerHTML = `<div class="n">${label}</div><div class="f">${f.toFixed(1)}</div>`;
+    b.title = "اسمع النغمة المرجعية";
+    b.onclick = () => playReference(f, b);
+    stringsRow.appendChild(b);
+  });
+}
+document.getElementById("transposeSelect").onchange = e => { transpose = +e.target.value; renderStrings(); };
+renderInstruments(); renderStrings();
+
+/* ---------------- صوت البيانو (توليف متعدد التوافقيات) ---------------- */
+let refCtx = null;
+
+function synthNote(ctx, dest, freq, t0, dur){
+  const g = ctx.createGain();
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.setValueAtTime(Math.min(8000, freq * 9), t0);
+  lp.frequency.setTargetAtTime(Math.min(2800, freq * 4), t0 + 0.03, 0.35);
+  g.connect(lp); lp.connect(dest);
+
+  const end = t0 + dur;
+  const baseTau = Math.max(0.5, Math.min(2.2, dur * 0.9));
+  [1,2,3,4,5,6,7].forEach(h => {
+    const o = ctx.createOscillator(); o.type = "sine";
+    o.frequency.value = freq * h * (1 + 0.00038 * h * h);   /* لا-توافقية خفيفة كأوتار البيانو */
+    const og = ctx.createGain();
+    const amp = 0.55 / Math.pow(h, 1.35);
+    og.gain.setValueAtTime(0.0001, t0);
+    og.gain.linearRampToValueAtTime(amp, t0 + 0.01);
+    og.gain.setTargetAtTime(0.0001, t0 + 0.015, baseTau / (0.6 + h * 0.55));
+    o.connect(og); og.connect(g);
+    o.start(t0); o.stop(end + 1.8);
+  });
+
+  /* المخمّد: خفوت طبيعي عند نهاية النغمة بلا نقرات */
+  g.gain.setValueAtTime(0.85, t0);
+  g.gain.setTargetAtTime(0.0001, end, 0.22);
+}
+
+/* النغمة المرجعية عند الضغط على وتر */
+function playReference(f, el){
+  if (!refCtx) refCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (refCtx.state === "suspended") refCtx.resume();
+  synthNote(refCtx, refCtx.destination, f, refCtx.currentTime + 0.02, 1.8);
+  document.querySelectorAll(".string-chip").forEach(s => s.classList.remove("target"));
+  el.classList.add("target");
+  setTimeout(() => el.classList.remove("target"), 1700);
+}
+
+/* ---------------- مرجع A4 ---------------- */
+$("refUp").onclick = () => { A4 = Math.min(466, A4 + 1); $("refVal").textContent = A4; renderStrings(); };
+$("refDown").onclick = () => { A4 = Math.max(415, A4 - 1); $("refVal").textContent = A4; renderStrings(); };
+
+/* ---------------- كشف الطبقة (Autocorrelation ACF2+) ---------------- */
+let audioCtx = null, analyser = null, mediaStream = null, rafId = null;
+const BUF_SIZE = 4096;
+const buf = new Float32Array(BUF_SIZE);
+
+function autoCorrelate(buffer, sampleRate){
+  let SIZE = buffer.length, rms = 0;
+  for (let i = 0; i < SIZE; i++){ const v = buffer[i]; rms += v * v; }
+  rms = Math.sqrt(rms / SIZE);
+  if (rms < 0.008) return -1; // إشارة ضعيفة
+
+  let r1 = 0, r2 = SIZE - 1;
+  const thres = 0.2;
+  for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buffer[i]) < thres){ r1 = i; break; }
+  for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buffer[SIZE - i]) < thres){ r2 = SIZE - i; break; }
+  const b = buffer.slice(r1, r2); SIZE = b.length;
+
+  const c = new Float32Array(SIZE);
+  for (let i = 0; i < SIZE; i++)
+    for (let j = 0; j < SIZE - i; j++)
+      c[i] += b[j] * b[j + i];
+
+  let d = 0; while (c[d] > c[d + 1]) d++;
+  let maxval = -1, maxpos = -1;
+  for (let i = d; i < SIZE; i++) if (c[i] > maxval){ maxval = c[i]; maxpos = i; }
+  let T0 = maxpos;
+  if (T0 <= 0) return -1;
+
+  const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+  const a = (x1 + x3 - 2 * x2) / 2, bb = (x3 - x1) / 2;
+  if (a) T0 = T0 - bb / (2 * a);
+  return sampleRate / T0;
+}
+
+/* تنعيم القراءة */
+let smoothCents = 0, lastStep = -1, holdCounter = 0;
+
+function loop(){
+  analyser.getFloatTimeDomainData(buf);
+  const f = autoCorrelate(buf, audioCtx.sampleRate);
+
+  if (f > 30 && f < 4000){
+    let targetIdx, cents;
+
+    if (currentInstrument.strings.length){
+      /* التقط أقرب وتر في الآلة المحددة */
+      let best = null, bestDiff = Infinity;
+      currentInstrument.strings.forEach(([idx]) => {
+        const diff = Math.abs(1200 * Math.log2(f / quarterToFreq(idx + transpose)));
+        if (diff < bestDiff){ bestDiff = diff; best = idx; }
+      });
+      targetIdx = best;
+      cents = 1200 * Math.log2(f / quarterToFreq(targetIdx + transpose));
+      document.querySelectorAll(".string-chip").forEach(s => {
+        const on = +s.dataset.idx === targetIdx;
+        s.classList.toggle("target", on && Math.abs(cents) >= 6);
+        s.classList.toggle("hit",    on && Math.abs(cents) < 6);
+      });
+    } else {
+      const qv = freqToQuarter(f);
+      targetIdx = Math.round(qv);
+      cents = (qv - targetIdx) * 50;
+    }
+
+    const info = idxInfo(targetIdx);
+    smoothCents = smoothCents * 0.6 + cents * 0.4;
+
+    noteAr.textContent = info.ar + " " + toArabicDigits(info.oct);
+    noteWest.textContent = info.west + (MAQAM_HINT[info.step] ? " — " + MAQAM_HINT[info.step] : "");
+    qtBadge.classList.toggle("show", info.isQT);
+    freqVal.textContent = f.toFixed(1);
+
+    const inTune = Math.abs(smoothCents) < 6;
+    noteAr.classList.toggle("in-tune", inTune);
+    centsVal.textContent = (smoothCents > 0 ? "+" : "") + smoothCents.toFixed(0);
+    centsVal.className = "val cents-val " + (inTune ? "good" : (Math.abs(smoothCents) > 20 ? "off" : ""));
+    setNeedle(smoothCents);
+    holdCounter = 0;
+  } else {
+    /* لا إشارة: أبقِ آخر قراءة لحظة ثم صفّر */
+    if (++holdCounter > 30){
+      noteAr.textContent = "—"; noteAr.classList.remove("in-tune");
+      noteWest.textContent = "استمع…"; qtBadge.classList.remove("show");
+      freqVal.textContent = "0.0"; centsVal.textContent = "—";
+      centsVal.className = "val cents-val";
+      setNeedle(0); smoothCents = 0;
+      document.querySelectorAll(".string-chip").forEach(s => s.classList.remove("target","hit"));
+    }
+  }
+  rafId = requestAnimationFrame(loop);
+}
+
+function toArabicDigits(n){ return String(n).replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]); }
+
+async function startMic(){
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+    });
+    const src = audioCtx.createMediaStreamSource(mediaStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = BUF_SIZE;
+    src.connect(analyser);
+    micBtn.textContent = "⏸ إيقاف الاستماع";
+    micBtn.classList.add("listening");
+    micHint.textContent = "اعزف وترًا واحدًا بوضوح للحصول على أدق قراءة";
+    loop();
+  }catch(err){
+    micHint.textContent = "تعذّر الوصول إلى الميكروفون — تأكد من منح الإذن في المتصفح";
+  }
+}
+function stopMic(){
+  cancelAnimationFrame(rafId);
+  if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
+  audioCtx = null; analyser = null; mediaStream = null;
+  micBtn.textContent = "▶︎ ابدأ الاستماع";
+  micBtn.classList.remove("listening");
+  micHint.textContent = "يحتاج التطبيق إذن الوصول إلى الميكروفون";
+  noteAr.textContent = "—"; noteWest.textContent = "استمع…";
+  setNeedle(0);
+}
+micBtn.onclick = () => audioCtx ? stopMic() : startMic();
+
+/* ==================================================================
+   تحليل المقطوعة: كشف المقام + تدوين أربع موازير
+   ================================================================== */
+const uploadBtn = $("uploadBtn"), recordBtn = $("recordBtn"), fileInput = $("fileInput"),
+      progressWrap = $("progressWrap"), progressBar = $("progressBar"),
+      analysisStatus = $("analysisStatus"), resultBlock = $("resultBlock"),
+      maqamName = $("maqamName"), maqamScale = $("maqamScale"),
+      notationWrap = $("notationWrap"), measuresList = $("measuresList");
+
+/* ---------- قوالب المقامات (درجات بالربع تون من درجة الركوز) ---------- */
+const MAQAMS = [
+  { name:"راست",   deg:[0,4,7,10,14,18,21] },
+  { name:"بياتي",  deg:[0,3,6,10,14,16,20] },
+  { name:"حجاز",   deg:[0,2,8,10,14,16,20] },
+  { name:"نهاوند", deg:[0,4,6,10,14,16,20] },
+  { name:"كرد",    deg:[0,2,6,10,14,16,20] },
+  { name:"عجم",    deg:[0,4,8,10,14,18,22] },
+  { name:"صبا",    deg:[0,3,6,8,14,16,20] },
+  { name:"سيكاه",  deg:[0,3,7,11,14,17,21] },
+];
+
+/* ---------- تتبع الطبقة على تسجيل كامل ---------- */
+async function trackPitches(channelData, sr, onProgress){
+  const factor = Math.max(1, Math.floor(sr / 11025));
+  const dsr = sr / factor;
+  const N = Math.floor(channelData.length / factor);
+  const data = new Float32Array(N);
+  for (let i = 0; i < N; i++) data[i] = channelData[i * factor];
+
+  const win = 2048, hop = 512;
+  const minLag = Math.floor(dsr / 1400), maxLag = Math.min(win - 2, Math.ceil(dsr / 55));
+  const vals = new Float32Array(maxLag + 1);
+  const frames = [];
+  const total = Math.max(1, Math.floor((N - win) / hop));
+  let count = 0;
+
+  for (let start = 0; start + win <= N; start += hop){
+    let energy = 0;
+    for (let i = 0; i < win; i++){ const v = data[start + i]; energy += v * v; }
+    const rms = Math.sqrt(energy / win);
+    if (rms < 0.01){ frames.push(-1); }
+    else {
+      let bestVal = 0;
+      for (let lag = minLag; lag <= maxLag; lag++){
+        let sum = 0;
+        for (let i = 0; i < win - lag; i++) sum += data[start + i] * data[start + i + lag];
+        vals[lag] = sum / energy;
+        if (vals[lag] > bestVal) bestVal = vals[lag];
+      }
+      if (bestVal < 0.4){ frames.push(-1); }
+      else {
+        /* اختر أصغر تأخير قريب من القمة لتفادي خطأ الأوكتاف، ثم استيفاء قطعي */
+        let lag = minLag;
+        while (lag <= maxLag && !(vals[lag] >= 0.88 * bestVal && vals[lag] >= vals[lag-1] && vals[lag] >= vals[lag+1])) lag++;
+        if (lag > maxLag){ frames.push(-1); }
+        else {
+          const x1 = vals[lag-1], x2 = vals[lag], x3 = vals[lag+1];
+          const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+          const T = a ? lag - b / (2 * a) : lag;
+          frames.push(dsr / T);
+        }
+      }
+    }
+    if (++count % 40 === 0){ onProgress(count / total); await new Promise(r => setTimeout(r)); }
+  }
+  onProgress(1);
+  return { frames, frameDur: hop / dsr };
+}
+
+/* ---------- تقطيع الإطارات إلى نغمات ---------- */
+function segmentNotes(frames, frameDur){
+  const notes = []; let cur = null;
+  const push = () => { if (cur && cur.n >= 3) notes.push({ idx: cur.idx, dur: cur.n * frameDur }); };
+  for (const f of frames){
+    const idx = (f > 0) ? Math.round(freqToQuarter(f)) : null;
+    if (cur && idx === cur.idx) cur.n++;
+    else { push(); cur = (idx === null) ? null : { idx, n: 1 }; }
+  }
+  push();
+  return notes;
+}
+
+/* ---------- كشف المقام من توزيع النغمات ---------- */
+function detectMaqam(notes){
+  const hist = new Float32Array(24);
+  let total = 0;
+  notes.forEach(n => { hist[((n.idx % 24) + 24) % 24] += n.dur; total += n.dur; });
+  if (!total) return null;
+  for (let i = 0; i < 24; i++) hist[i] /= total;
+  const lastPC = ((notes[notes.length - 1].idx % 24) + 24) % 24;
+
+  let best = null;
+  MAQAMS.forEach(m => {
+    for (let root = 0; root < 24; root++){
+      let inScore = 0, outScore = 0;
+      const inSet = new Set(m.deg.map(d => (root + d) % 24));
+      for (let pc = 0; pc < 24; pc++){
+        if (inSet.has(pc)){
+          const d = (pc - root + 24) % 24;
+          const w = d === 0 ? 2.2 : (d === 14 ? 1.4 : 1);
+          inScore += w * hist[pc];
+        } else outScore += hist[pc];
+      }
+      let score = inScore - 0.9 * outScore;
+      if (lastPC === root) score += 0.12;           /* القفلة على درجة الركوز */
+      if (!best || score > best.score) best = { maqam: m, root, score };
+    }
+  });
+  return best;
+}
+
+/* ---------- تحويل درجة الـ24 إلى موضع على المدرج ---------- */
+const LETTER_OF_STEP = [0,0,0,1,1,1,2,2,2,3,3,3,3,4,4,4,5,5,5,5,6,6,6,7];
+const ACC_OF_STEP    = ["","½♯","♯","½♭","","½♯","♭","½♭","","½♭","","½♯","♯","½♭","","½♯","♭","½♭","","½♯","♭","½♭","","½♭"];
+function staffInfo(idx){
+  const oct = Math.floor(idx / 24), step = ((idx % 24) + 24) % 24;
+  let letter = LETTER_OF_STEP[step], o = oct;
+  if (letter === 7){ letter = 0; o += 1; }
+  return { pos: letter + 7 * o, acc: ACC_OF_STEP[step], info: idxInfo(idx) };
+}
+
+/* ---------- بناء الموازير الأربع ---------- */
+function buildMeasures(notes){
+  const durs = notes.map(n => n.dur).filter(d => d > 0.1 && d < 2).sort((a,b) => a - b);
+  const beat = Math.min(1, Math.max(0.22, durs.length ? durs[Math.floor(durs.length / 2)] : 0.5));
+  const measures = Array.from({ length: 8 }, () => []);
+  let mi = 0, filled = 0, ni = 0;
+  while (mi < 8 && ni < notes.length){
+    const n = notes[ni++];
+    let beats = n.dur / beat;
+    beats = beats < 0.75 ? 0.5 : beats < 1.5 ? 1 : beats < 3 ? 2 : 4;
+    beats = Math.min(beats, 4 - filled);
+    if (beats < 0.5) beats = 0.5;
+    measures[mi].push({ idx: n.idx, beats });
+    filled += beats;
+    if (filled >= 4){ mi++; filled = 0; }
+  }
+  return { measures: measures.filter(m => m.length), beat };
+}
+
+/* ---------- رسم التدوين SVG: سطران، أربع موازير في كل مدرج ---------- */
+function renderNotation(measures){
+  const gap = 9, rowH = 128;
+  const rows = [];
+  for (let i = 0; i < measures.length; i += 4) rows.push(measures.slice(i, i + 4));
+  const parts = [];
+  const rowTops = [];
+  let W = 0;
+
+  rows.forEach((row, ri) => {
+    const top = 30 + ri * rowH, bottomLine = top + 4 * gap;
+    rowTops.push(top);
+    const yOf = pos => bottomLine - (pos - 30) * (gap / 2);
+    let x = 58;
+
+    row.forEach((m) => {
+      m.forEach(note => {
+        const s = staffInfo(note.idx);
+        const y = yOf(s.pos);
+        for (let p = 28; p >= s.pos; p -= 2) parts.push(`<line x1="${x-9}" y1="${yOf(p)}" x2="${x+9}" y2="${yOf(p)}" stroke="#3A3226" stroke-width="1.2"/>`);
+        for (let p = 40; p <= s.pos; p += 2) parts.push(`<line x1="${x-9}" y1="${yOf(p)}" x2="${x+9}" y2="${yOf(p)}" stroke="#3A3226" stroke-width="1.2"/>`);
+        if (s.acc === "½♭")
+          parts.push(`<text x="${x-11}" y="${y+3}" font-size="15" fill="#3A3226" transform="scale(-1,1) translate(${-2*(x-11)},0)">♭</text>`);
+        else if (s.acc)
+          parts.push(`<text x="${x-17}" y="${y+4}" font-size="${s.acc.length>1?10:15}" fill="#3A3226">${s.acc}</text>`);
+        const hollow = note.beats >= 2;
+        parts.push(`<ellipse cx="${x}" cy="${y}" rx="6.2" ry="4.6" fill="${hollow?'none':'#3A3226'}" stroke="#3A3226" stroke-width="1.6" transform="rotate(-18 ${x} ${y})"/>`);
+        if (note.beats < 4){
+          const up = s.pos < 34;
+          const sy = up ? y - 30 : y + 30;
+          const sx = up ? x + 5.6 : x - 5.6;
+          parts.push(`<line x1="${sx}" y1="${y}" x2="${sx}" y2="${sy}" stroke="#3A3226" stroke-width="1.5"/>`);
+          if (note.beats === 0.5)
+            parts.push(`<path d="M ${sx} ${sy} q 9 ${up?6:-6} 5 ${up?16:-16}" fill="none" stroke="#3A3226" stroke-width="1.5"/>`);
+        }
+        x += note.beats >= 2 ? 52 : note.beats === 1 ? 40 : 32;
+      });
+      parts.push(`<line x1="${x}" y1="${top}" x2="${x}" y2="${bottomLine}" stroke="#3A3226" stroke-width="1.6"/>`);
+      x += 22;
+    });
+    W = Math.max(W, x + 10);
+  });
+
+  let staff = "";
+  rowTops.forEach((top, ri) => {
+    const bottomLine = top + 4 * gap;
+    for (let i = 0; i < 5; i++) staff += `<line x1="8" y1="${top + i*gap}" x2="${W-8}" y2="${top + i*gap}" stroke="#3A3226" stroke-width="1.1"/>`;
+    staff += `<text x="12" y="${bottomLine - 2}" font-size="52" fill="#3A3226">𝄞</text>`;
+    if (ri === 0) staff += `<text x="42" y="${top+18}" font-size="13" fill="#3A3226" font-family="serif">4</text><text x="42" y="${top+34}" font-size="13" fill="#3A3226" font-family="serif">4</text>`;
+  });
+
+  const H = 40 + rows.length * rowH;
+  notationWrap.innerHTML = `<svg viewBox="0 -22 ${W} ${H}" width="${W}" height="${H + 10}" xmlns="http://www.w3.org/2000/svg">${staff}${parts.join("")}</svg>`;
+}
+
+/* ---------- عرض النتائج ---------- */
+function showResults(notes){
+  if (notes.length < 3){
+    analysisStatus.textContent = "لم أتمكن من التقاط نغمات كافية — جرّب تسجيلًا أوضح لآلة منفردة.";
+    return;
+  }
+  const det = detectMaqam(notes);
+  maqamName.textContent = `${det.maqam.name} على ${AR_NAMES[det.root]}`;
+  maqamScale.innerHTML = det.maqam.deg.map((d, i) => {
+    const pc = (det.root + d) % 24;
+    return `<span class="scale-note${i === 0 ? " tonic" : ""}">${AR_NAMES[pc]}</span>`;
+  }).join("");
+
+  const { measures, beat } = buildMeasures(notes);
+  lastMeasures = measures; lastBeat = beat;
+  renderNotation(measures);
+
+  const ORD = ["الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة"];
+  measuresList.innerHTML = measures.map((m, i) =>
+    `<div class="measure-row"><b>المازورة ${ORD[i]}:</b> ` +
+    m.map(n => { const s = idxInfo(n.idx); return `${s.ar} ${toArabicDigits(s.oct)}${s.isQT ? " (ربع تون)" : ""}`; }).join("، ") +
+    `</div>`
+  ).join("");
+
+  resultBlock.style.display = "block";
+  analysisStatus.textContent = `تم تحليل ${notes.length} نغمة.`;
+}
+
+/* ---------- تشغيل الموازير بصوت البيانو ---------- */
+const playMeasuresBtn = $("playMeasuresBtn");
+let lastMeasures = null, lastBeat = 0.5, playGain = null, playEndTimer = null;
+
+playMeasuresBtn.onclick = () => {
+  if (playGain){ stopMeasures(); return; }
+  if (!lastMeasures || !lastMeasures.length) return;
+  if (!refCtx) refCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (refCtx.state === "suspended") refCtx.resume();
+
+  playGain = refCtx.createGain();
+  playGain.gain.value = 0.9;
+  playGain.connect(refCtx.destination);
+  const beatSec = Math.min(0.75, Math.max(0.4, lastBeat));
+  let t = refCtx.currentTime + 0.2;
+  lastMeasures.flat().forEach(n => {
+    const d = n.beats * beatSec;
+    synthNote(refCtx, playGain, quarterToFreq(n.idx), t, Math.max(0.4, d * 1.05));
+    t += d;
+  });
+  playMeasuresBtn.textContent = "⏹ إيقاف";
+  playEndTimer = setTimeout(stopMeasures, (t - refCtx.currentTime + 2) * 1000);
+};
+
+function stopMeasures(){
+  clearTimeout(playEndTimer);
+  if (playGain){
+    playGain.gain.setTargetAtTime(0.0001, refCtx.currentTime, 0.08);
+    const g = playGain;
+    setTimeout(() => { try{ g.disconnect(); }catch(e){} }, 600);
+    playGain = null;
+  }
+  playMeasuresBtn.textContent = "🎹 ▶︎ تشغيل الموازير";
+}
+
+/* ---------- تنفيذ التحليل ---------- */
+async function analyzeBuffer(audioBuffer){
+  resultBlock.style.display = "none";
+  progressWrap.style.display = "block";
+  progressBar.style.width = "0%";
+  analysisStatus.textContent = "جارٍ تحليل التسجيل…";
+
+  /* دمج القنوات + الاكتفاء بأول 40 ثانية */
+  const sr = audioBuffer.sampleRate;
+  const len = Math.min(audioBuffer.length, sr * 40);
+  const mono = new Float32Array(len);
+  for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++){
+    const d = audioBuffer.getChannelData(ch);
+    for (let i = 0; i < len; i++) mono[i] += d[i] / audioBuffer.numberOfChannels;
+  }
+
+  const { frames, frameDur } = await trackPitches(mono, sr, p => progressBar.style.width = (p * 100).toFixed(0) + "%");
+  progressWrap.style.display = "none";
+  showResults(segmentNotes(frames, frameDur));
+}
+
+async function analyzeBlob(blob){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    ctx.close();
+    await analyzeBuffer(buf);
+  }catch(e){
+    progressWrap.style.display = "none";
+    analysisStatus.textContent = "تعذّرت قراءة الملف الصوتي — جرّب صيغة m4a أو mp3 أو wav.";
+  }
+}
+
+/* ---------- رفع ملف ---------- */
+uploadBtn.onclick = () => fileInput.click();
+fileInput.onchange = () => { if (fileInput.files[0]) analyzeBlob(fileInput.files[0]); fileInput.value = ""; };
+
+/* ---------- تسجيل مباشر ---------- */
+let recorder = null, recChunks = [], recTimer = null;
+recordBtn.onclick = async () => {
+  if (recorder && recorder.state === "recording"){ recorder.stop(); return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:false, noiseSuppression:false } });
+    recChunks = [];
+    recorder = new MediaRecorder(stream);
+    recorder.ondataavailable = e => recChunks.push(e.data);
+    recorder.onstop = () => {
+      clearTimeout(recTimer);
+      stream.getTracks().forEach(t => t.stop());
+      recordBtn.textContent = "🎙 تسجيل مباشر";
+      recordBtn.classList.remove("rec");
+      analyzeBlob(new Blob(recChunks, { type: recorder.mimeType }));
+    };
+    recorder.start();
+    recordBtn.textContent = "⏹ إيقاف التسجيل";
+    recordBtn.classList.add("rec");
+    analysisStatus.textContent = "جارٍ التسجيل… (يتوقف تلقائيًا بعد ٢٠ ثانية)";
+    recTimer = setTimeout(() => { if (recorder.state === "recording") recorder.stop(); }, 20000);
+  }catch(e){
+    analysisStatus.textContent = "تعذّر بدء التسجيل — تأكد من إذن الميكروفون.";
+  }
+};
+</script>
+</body>
+</html>
